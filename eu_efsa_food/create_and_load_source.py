@@ -36,7 +36,7 @@ default_args = {
     "start_date": datetime.now(),
     "catchup": False,
     "retries": 2,
-    "on_failure_callback": "", # EDIT THIS LINE, CREATE CALLBACK FUNCTION
+    "on_failure_callback": "",  # EDIT THIS LINE, CREATE CALLBACK FUNCTION
     "dagrun_timeout": timedelta(minutes=60),
 }
 
@@ -46,38 +46,26 @@ dag = DAG(
     tags=[
         "Big_Project",
         "source_data",
-        "load_postgres"
-        ],
+        "load_postgres",
+    ],
     max_active_runs=1,
-    on_success_callback="", # EDIT THIS LINE, CREATE CALLBACK FUNCTION
-    doc_md=docs
+    on_success_callback="",  # EDIT THIS LINE, CREATE CALLBACK FUNCTION
+    doc_md=docs,
 )
 
 with dag:
 
-    start_flow_task = DummyOperator(
-        task_id='start_flow'
-    )
+    start_flow_task = DummyOperator(task_id="start_flow")
 
     create_table_tasks_group = create_tables_group_task(
-        create_table_names,
-        create_tables_queries,
-        dag
-        )
-    
-    load_data_task = DummyOperator(
-        task_id='load_data'
+        create_table_names, create_tables_queries, dag
     )
 
-    load_data_tasks_group = load_data_group_task(
-        load_table_names,
-        files_path,
-        dag
-    )
-    
-    end_flow_task = DummyOperator(
-        task_id='end_flow'
-    )
+    load_data_task = DummyOperator(task_id="load_data")
+
+    load_data_tasks_group = load_data_group_task(load_table_names, files_path, dag)
+
+    end_flow_task = DummyOperator(task_id="end_flow")
 
     start_flow_task >> create_table_tasks_group
     create_table_tasks_group >> load_data_task
