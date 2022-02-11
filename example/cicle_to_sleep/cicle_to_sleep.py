@@ -7,7 +7,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-docs = f"""
+docs = """
 # Here you can find which time to sleep
 """
 
@@ -18,29 +18,29 @@ default_args = {
     "catchup": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
-    "on_failure_callback": "", # EDIT THIS LINE, CREATE CALLBACK FUNCTION
+    "on_failure_callback": "",  # EDIT THIS LINE, CREATE CALLBACK FUNCTION
     "dagrun_timeout": timedelta(minutes=60),
 }
 
 dag = DAG(
     "cicle_to_sleep",
     default_args=default_args,
-    tags=['sleep_cicle', 'sleep_better'],
+    tags=["sleep_cicle", "sleep_better"],
     max_active_runs=1,
-    on_success_callback="", # EDIT THIS LINE, CREATE CALLBACK FUNCTION
-    doc_md=docs
+    on_success_callback="",  # EDIT THIS LINE, CREATE CALLBACK FUNCTION
+    doc_md=docs,
 )
 
 with dag:
-    
+
     start_flow = DummyOperator(
-        task_id='start_flow',
+        task_id="start_flow",
     )
 
     calculate_time = calculate_time()
 
     end_flow = DummyOperator(
-        task_id='end_flow',
+        task_id="end_flow",
     )
 
     start_flow >> calculate_time

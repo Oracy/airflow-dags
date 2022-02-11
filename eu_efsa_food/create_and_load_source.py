@@ -25,9 +25,10 @@ load_data_files = "parquet_files/source/"
 create_table_names = get_load_table_names(queries_path)
 load_table_names = get_create_table_names(files_path)
 
-docs = f"""
+docs = """
 Create source tables and load data into them from CSV
-Project link [@here](https://github.com/Oracy/airflow_dags/tree/2a5529a0671f91572888aa418d828d53324d6341/eu_efsa_food)
+Project link
+[@here](https://github.com/Oracy/airflow_dags/tree/2a5529a0671f91572888aa418d828d53324d6341/eu_efsa_food)
 """
 
 default_args = {
@@ -58,7 +59,9 @@ with dag:
     start_flow_task = DummyOperator(task_id="start_flow")
 
     create_table_tasks_group = create_tables_group_task(
-        create_table_names, create_tables_queries, dag
+        create_table_names,
+        create_tables_queries,
+        dag,
     )
 
     load_data_task = DummyOperator(task_id="load_data")
