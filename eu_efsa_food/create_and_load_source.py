@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 queries_path = "/" + "/".join(Path(__file__).parts[1:-1]) + "/queries"
 files_path = "/" + "/".join(Path(__file__).parts[1:-1]) + "/parquet_files"
 
-create_tables_queries = "queries/create_tables/"
+create_tables_queries_path = "queries/create_tables/"
 load_data_files = "parquet_files/source/"
 
 create_table_names = get_load_table_names(queries_path)
@@ -58,7 +58,7 @@ with dag:
 
     create_table_tasks_group = create_tables_group_task(
         create_table_names,
-        create_tables_queries,
+        create_tables_queries_path,
         dag,
     )
 
