@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import pandas as pd
 from airflow.operators.python_operator import PythonOperator
@@ -7,7 +8,7 @@ from airflow.utils.task_group import TaskGroup
 from sqlalchemy import create_engine
 
 
-def get_create_table_names(queries_path):
+def get_create_table_names(queries_path) -> List:
     """Get all table names that would be created, from create queries on ./queries/create_tables/*.sql.
 
     Args:
@@ -25,7 +26,7 @@ def get_create_table_names(queries_path):
     return create_table_names
 
 
-def get_load_table_names(files_path):
+def get_load_table_names(files_path) -> List:
     """Get all file names that would be loaded, from parquet files on
     ./parquet_files/source/*.parquet.
 
@@ -44,7 +45,7 @@ def get_load_table_names(files_path):
     return load_table_names
 
 
-def create_tables_group_task(create_table_names, create_tables_queries_path, dag):
+def create_tables_group_task(create_table_names, create_tables_queries_path, dag) -> TaskGroup:
     """Create group task on flow with sql queries that create tables on database.
 
     Args:
@@ -70,7 +71,7 @@ def create_tables_group_task(create_table_names, create_tables_queries_path, dag
     return create_table_tasks_group
 
 
-def load_data_group_task(load_table_names, files_path, dag):
+def load_data_group_task(load_table_names, files_path, dag) -> TaskGroup:
     """Create group task on flow with parquet files that will be loaded on database.
 
     Args:
@@ -99,7 +100,7 @@ def load_data_group_task(load_table_names, files_path, dag):
     return load_data_tasks_group
 
 
-def read_parquet(**kwargs):
+def read_parquet(**kwargs) -> None:
     """Read data from parquet to call function to insert data into postgres database.
 
     Args:
@@ -116,10 +117,9 @@ def read_parquet(**kwargs):
     file_path = os.path.join(home_path, "dags", relative_path)
     df = pd.read_parquet(file_path)
     write_parquet_to_postgres(df, table_name)
-    return f"{table_name} Done!"
 
 
-def write_parquet_to_postgres(df, table_name):
+def write_parquet_to_postgres(df, table_name) -> None:
     """Insert data from parquet to postgres database using sqlalchemy create_engine.
 
     Args:
@@ -132,4 +132,3 @@ def write_parquet_to_postgres(df, table_name):
     """
     engine = create_engine("postgresql://postgres:postgres@172.20.0.2:5432/postgres")
     df.to_sql(table_name, engine, if_exists="replace")
-    return f"{table_name} Writed!"
