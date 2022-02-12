@@ -1,18 +1,16 @@
-from airflow import DAG
-from airflow_dags.eu_efsa_food.utils import (
-    create_tables_group_task,
-    load_data_group_task,
-    get_create_table_names,
-    get_load_table_names,
-)
-from airflow.operators.dummy import DummyOperator
-from datetime import (
-    datetime,
-    timedelta,
-)
+import logging
+from datetime import datetime, timedelta
 from pathlib import Path
 
-import logging
+from airflow import DAG
+from airflow.operators.dummy import DummyOperator
+
+from airflow_dags.eu_efsa_food.utils import (
+    create_tables_group_task,
+    get_create_table_names,
+    get_load_table_names,
+    load_data_group_task,
+)
 
 log = logging.getLogger(__name__)
 

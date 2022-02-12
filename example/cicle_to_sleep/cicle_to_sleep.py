@@ -1,9 +1,10 @@
+import logging
+from datetime import datetime, timedelta
+
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
-from datetime import datetime, timedelta
-from airflow_dags.example.cicle_to_sleep.utils import calculate_time
 
-import logging
+from airflow_dags.example.cicle_to_sleep.utils import calculate_time
 
 log = logging.getLogger(__name__)
 

@@ -1,6 +1,8 @@
-from airflow.decorators import task
-from airflow_dags.example.utils import gen_cicle, performance
 from datetime import datetime, timedelta
+
+from airflow.decorators import task
+
+from airflow_dags.example.utils import gen_cicle, performance
 
 
 @task(task_id="calculate_time")

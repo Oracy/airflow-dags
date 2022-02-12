@@ -1,10 +1,10 @@
-from airflow.providers.postgres.operators.postgres import PostgresOperator
+import os
+
+import pandas as pd
 from airflow.operators.python_operator import PythonOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.utils.task_group import TaskGroup
 from sqlalchemy import create_engine
-
-import os
-import pandas as pd
 
 
 def create_tables_group_task(create_table_names, create_tables_queries, dag):
