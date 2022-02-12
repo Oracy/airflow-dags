@@ -8,25 +8,7 @@ from airflow.utils.task_group import TaskGroup
 from sqlalchemy import create_engine
 
 
-def get_create_table_names(queries_path) -> List:
-    """Get all table names that would be created, from create queries on ./queries/create_tables/*.sql.
-
-    Args:
-        queries_path: File path that queries are stored, to read it on local folders.
-
-    Returns:
-        An array with all create tables. For example:
-        ["acute_g_day_bw_all_days", "acute_g_day_bw_cons_days", "chronic_g_day_bw_to_t_pop", ...]
-    """
-    create_table_names = []
-    for root, directories, files in os.walk(queries_path):
-        if "create_tables" in root:
-            for name in files:
-                create_table_names.append(name.replace(".sql", ""))
-    return create_table_names
-
-
-def get_load_table_names(files_path) -> List:
+def get_load_table_names(files_path: str) -> List[str]:
     """Get all file names that would be loaded, from parquet files on
     ./parquet_files/source/*.parquet.
 
@@ -45,7 +27,27 @@ def get_load_table_names(files_path) -> List:
     return load_table_names
 
 
-def create_tables_group_task(create_table_names, create_tables_queries_path, dag) -> TaskGroup:
+def get_create_table_names(queries_path: str) -> List[str]:
+    """Get all table names that would be created, from create queries on ./queries/create_tables/*.sql.
+
+    Args:
+        queries_path: File path that queries are stored, to read it on local folders.
+
+    Returns:
+        An array with all create tables. For example:
+        ["acute_g_day_bw_all_days", "acute_g_day_bw_cons_days", "chronic_g_day_bw_to_t_pop", ...]
+    """
+    create_table_names = []
+    for root, directories, files in os.walk(queries_path):
+        if "create_tables" in root:
+            for name in files:
+                create_table_names.append(name.replace(".sql", ""))
+    return create_table_names
+
+
+def create_tables_group_task(
+    create_table_names: List[str], create_tables_queries_path: str, dag
+) -> TaskGroup:
     """Create group task on flow with sql queries that create tables on database.
 
     Args:
@@ -71,7 +73,7 @@ def create_tables_group_task(create_table_names, create_tables_queries_path, dag
     return create_table_tasks_group
 
 
-def load_data_group_task(load_table_names, files_path, dag) -> TaskGroup:
+def load_data_group_task(load_table_names: List[str], files_path: str, dag) -> TaskGroup:
     """Create group task on flow with parquet files that will be loaded on database.
 
     Args:
@@ -119,7 +121,7 @@ def read_parquet(**kwargs) -> None:
     write_parquet_to_postgres(df, table_name)
 
 
-def write_parquet_to_postgres(df, table_name) -> None:
+def write_parquet_to_postgres(df: pd.DataFrame, table_name: str) -> None:
     """Insert data from parquet to postgres database using sqlalchemy create_engine.
 
     Args:

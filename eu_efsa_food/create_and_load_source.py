@@ -5,7 +5,7 @@ from pathlib import Path
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
 
-from airflow_dags.eu_efsa_food.utils import (
+from airflow_dags.eu_efsa_food.utils import (  # isort:skip
     create_tables_group_task,
     get_create_table_names,
     get_load_table_names,
@@ -20,8 +20,8 @@ files_path = "/" + "/".join(Path(__file__).parts[1:-1]) + "/parquet_files"
 create_tables_queries_path = "queries/create_tables/"
 load_data_files = "parquet_files/source/"
 
-create_table_names = get_load_table_names(queries_path)
-load_table_names = get_create_table_names(files_path)
+create_table_names = get_create_table_names(queries_path)
+load_table_names = get_load_table_names(files_path)
 
 docs = """
 Create source tables and load data into them from CSV
