@@ -4,6 +4,7 @@ from pathlib import Path
 
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
+from functions_utils.utils import alert_slack_channel, cleanup_xcom
 
 from airflow_dags.eu_efsa_food.utils import (  # isort:skip
     create_tables_group_task,
@@ -11,6 +12,7 @@ from airflow_dags.eu_efsa_food.utils import (  # isort:skip
     get_load_table_names,
     load_data_group_task,
 )
+
 
 log = logging.getLogger(__name__)
 
@@ -32,10 +34,10 @@ Project link
 default_args = {
     "owner": "Oracy Martos",
     "schedule_interval": "@once",
-    "start_date": datetime.now(),
+    "start_date": datetime(2022, 2, 11, 6, 00, 00),
     "catchup": False,
     "retries": 2,
-    "on_failure_callback": "",  # EDIT THIS LINE, CREATE CALLBACK FUNCTION
+    "on_failure_callback": alert_slack_channel,
     "dagrun_timeout": timedelta(minutes=60),
 }
 
@@ -48,7 +50,7 @@ dag = DAG(
         "load_postgres",
     ],
     max_active_runs=1,
-    on_success_callback="",  # EDIT THIS LINE, CREATE CALLBACK FUNCTION
+    on_success_callback=cleanup_xcom,
     doc_md=docs,
 )
 

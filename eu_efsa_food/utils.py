@@ -1,10 +1,10 @@
 import os
 from typing import List
 
-import pandas as pd
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.utils.task_group import TaskGroup
+from functions_utils.utils import read_parquet
 from sqlalchemy import create_engine
 
 
@@ -91,7 +91,7 @@ def load_data_group_task(load_table_names: List[str], files_path: str, dag) -> T
             load_data_task = PythonOperator(
                 task_id="load_data_" + table_name,
                 provide_context=True,
-                python_callable=read_parquet,
+                python_callable=write_parquet_to_postgres,
                 op_kwargs={
                     "table_name": table_name,
                     "relative_path": files_path + f"/source/{table_name}.parquet",
@@ -102,35 +102,17 @@ def load_data_group_task(load_table_names: List[str], files_path: str, dag) -> T
     return load_data_tasks_group
 
 
-def read_parquet(**kwargs) -> None:
-    """Read data from parquet to call function to insert data into postgres database.
-
-    Args:
-        **relative_path: File path that parquet are stored, to read it on local folders.
-        **table_name: Which database that dataframe would be inserted.
-
-    Returns:
-        Only a f-string with which table were inserted. For example:
-        acute_g_day_bw_all_days Done!
-    """
-    relative_path = kwargs.get("relative_path")
-    table_name = kwargs.get("table_name")
-    home_path = os.environ["HOME"]
-    file_path = os.path.join(home_path, "dags", relative_path)
-    df = pd.read_parquet(file_path)
-    write_parquet_to_postgres(df, table_name)
-
-
-def write_parquet_to_postgres(df: pd.DataFrame, table_name: str) -> None:
+def write_parquet_to_postgres(**kwargs) -> None:
     """Insert data from parquet to postgres database using sqlalchemy create_engine.
 
     Args:
-        df: Whole dataframe that will be insert on database, use this function only with small DFs.
-        table_name: Which database that dataframe would be inserted.
+        **table_name: Which database that dataframe would be inserted.
 
     Returns:
         Only a f-string with which table were inserted. For example:
         acute_g_day_bw_all_days Writed!
     """
+    table_name = kwargs.get("table_name")
+    df = read_parquet(**kwargs)
     engine = create_engine("postgresql://postgres:postgres@172.20.0.2:5432/postgres")
     df.to_sql(table_name, engine, if_exists="replace")
