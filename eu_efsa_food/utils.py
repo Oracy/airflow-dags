@@ -10,7 +10,7 @@ from functions_utils.utils import read_parquet
 from sqlalchemy import create_engine
 
 
-def get_load_table_names(files_path: str) -> List[str]:
+def get_table_names(files_path: str) -> List[List[str], List[str]]:
     """Get all file names that would be loaded, from parquet files on
     ./parquet_files/source/*.parquet.
 
@@ -21,30 +21,16 @@ def get_load_table_names(files_path: str) -> List[str]:
         An array with all create tables. For example:
         ["acute_g_day_bw_all_days", "acute_g_day_bw_cons_days", "chronic_g_day_bw_to_t_pop", ...]
     """
-    load_table_names: List[str] = []
+    load_table: List[str] = []
+    create_table: List[str] = []
     for root, directories, files in os.walk(files_path):
-        if "source" in root:
-            for name in files:
-                load_table_names.append(name.replace(".parquet", ""))
-    return load_table_names
-
-
-def get_create_table_names(queries_path: str) -> List[str]:
-    """Get all table names that would be created, from create queries on ./queries/create_tables/*.sql.
-
-    Args:
-        queries_path: File path that queries are stored, to read it on local folders.
-
-    Returns:
-        An array with all create tables. For example:
-        ["acute_g_day_bw_all_days", "acute_g_day_bw_cons_days", "chronic_g_day_bw_to_t_pop", ...]
-    """
-    create_table_names: List[str] = []
-    for root, directories, files in os.walk(queries_path):
-        if "create_tables" in root:
-            for name in files:
-                create_table_names.append(name.replace(".sql", ""))
-    return create_table_names
+        if "parquet_files" in root:
+            load_table.append(files)
+        elif "create_tables" in root:
+            create_table.append(files)
+    load_table = [table.replace(".parquet", "") for table in load_table[0]]
+    create_table = [table.replace(".sql", "") for table in create_table[0]]
+    return {"load_table": load_table, "create_table": create_table}
 
 
 def create_tables_group_task(
@@ -75,12 +61,14 @@ def create_tables_group_task(
     return create_table_tasks_group
 
 
-def load_data_group_task(load_table_names: List[str], files_path: str, dag: DAG) -> "TaskGroup":
+def load_data_group_task(
+    load_table_names: List[str], load_data_files: str, dag: DAG
+) -> "TaskGroup":
     """Create group task on flow with parquet files that will be loaded on database.
 
     Args:
         load_table_names: An array with table name that whould be loaded.
-        files_path: Path where parquet files are stored.
+        load_data_files: Path where parquet files are stored.
         dag: dag parameter to set operator.
 
     Returns:
@@ -96,7 +84,7 @@ def load_data_group_task(load_table_names: List[str], files_path: str, dag: DAG)
                 python_callable=write_parquet_to_postgres,
                 op_kwargs={
                     "table_name": table_name,
-                    "relative_path": files_path + f"/source/{table_name}.parquet",
+                    "relative_path": f"{load_data_files}{table_name}.parquet",
                 },
                 dag=dag,
             )
@@ -116,5 +104,5 @@ def write_parquet_to_postgres(**kwargs: Dict[str, Any]) -> None:
     """
     table_name: str = kwargs.get("table_name")
     df: pd.DataFrame = read_parquet(**kwargs)
-    engine = create_engine("postgresql://postgres:postgres@172.20.0.2:5432/postgres")
+    engine = create_engine("postgresql://postgres:postgres@172.25.0.2:5432/postgres")
     df.to_sql(table_name, engine, if_exists="replace")

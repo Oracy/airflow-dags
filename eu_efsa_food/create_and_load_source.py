@@ -8,22 +8,20 @@ from functions_utils.utils import alert_slack_channel, cleanup_xcom
 
 from airflow_dags.eu_efsa_food.utils import (  # isort:skip
     create_tables_group_task,
-    get_create_table_names,
-    get_load_table_names,
+    get_table_names,
     load_data_group_task,
 )
 
 
 log = logging.getLogger(__name__)
 
-queries_path = "/" + "/".join(Path(__file__).parts[1:-1]) + "/queries"
-files_path = "/" + "/".join(Path(__file__).parts[1:-1]) + "/parquet_files"
+files_path = "/" + "/".join(Path(__file__).parts[1:-1]) + "/files"
 
-create_tables_queries_path = "queries/create_tables/"
-load_data_files = "parquet_files/source/"
+create_tables_queries_path = "files/create_tables/"
+load_data_files = f"{files_path}/parquet_files/"
 
-create_table_names = get_create_table_names(queries_path)
-load_table_names = get_load_table_names(files_path)
+create_table_names = get_table_names(files_path)["create_table"]
+load_table_names = get_table_names(files_path)["load_table"]
 
 docs = """
 Create source tables and load data into them from CSV
@@ -66,7 +64,7 @@ with dag:
 
     load_data_task = DummyOperator(task_id="load_data")
 
-    load_data_tasks_group = load_data_group_task(load_table_names, files_path, dag)
+    load_data_tasks_group = load_data_group_task(load_table_names, load_data_files, dag)
 
     end_flow_task = DummyOperator(task_id="end_flow")
 
