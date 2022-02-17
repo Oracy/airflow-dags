@@ -24,7 +24,7 @@ create_tables_queries_path = "files/create_tables/"
 load_data_files = f"{files_path}/parquet_files/"
 
 create_table_names = get_file_names(files_path, "create_table")
-load_table_names = get_file_names(files_path, "load_table")
+load_table_names = get_file_names(files_path, "parquet_files")
 
 docs = """
 Create source tables and load data into them from CSV
