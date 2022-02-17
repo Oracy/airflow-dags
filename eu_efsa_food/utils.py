@@ -1,4 +1,3 @@
-import os
 from typing import Any, Dict, List
 
 import pandas as pd
@@ -8,29 +7,6 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.utils.task_group import TaskGroup
 from functions_utils.utils import read_parquet
 from sqlalchemy import create_engine
-
-
-def get_table_names(files_path: str) -> List[List[str], List[str]]:
-    """Get all file names that would be loaded, from parquet files on
-    ./parquet_files/source/*.parquet.
-
-    Args:
-        files_path: File path that parquet are stored, to read it on local folders.
-
-    Returns:
-        An array with all create tables. For example:
-        ["acute_g_day_bw_all_days", "acute_g_day_bw_cons_days", "chronic_g_day_bw_to_t_pop", ...]
-    """
-    load_table: List[str] = []
-    create_table: List[str] = []
-    for root, directories, files in os.walk(files_path):
-        if "parquet_files" in root:
-            load_table.append(files)
-        elif "create_tables" in root:
-            create_table.append(files)
-    load_table = [table.replace(".parquet", "") for table in load_table[0]]
-    create_table = [table.replace(".sql", "") for table in create_table[0]]
-    return {"load_table": load_table, "create_table": create_table}
 
 
 def create_tables_group_task(
@@ -104,5 +80,5 @@ def write_parquet_to_postgres(**kwargs: Dict[str, Any]) -> None:
     """
     table_name: str = kwargs.get("table_name")
     df: pd.DataFrame = read_parquet(**kwargs)
-    engine = create_engine("postgresql://postgres:postgres@172.25.0.2:5432/postgres")
+    engine = create_engine("postgresql://postgres:postgres@172.20.0.2:5432/postgres")
     df.to_sql(table_name, engine, if_exists="replace")
